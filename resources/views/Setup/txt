@@ -1,0 +1,50 @@
+
+    public function region_update(Request $request, $id)
+    {
+        try {
+            // Find the region being updated
+            $region = Setup_Region::find($id);
+
+            if (!$region) {
+                throw new \Exception("Region not found.");
+            }
+
+            // Check if the updated region already exists excluding the current region being updated
+            $existingRegion = Setup_Region::where('region_name', $request->input('region'))
+                ->where('region_code', $request->input('region_code'))
+                ->where('invoice_code', $request->input('invoice_code'))
+                ->where('flag', 0)
+                ->first();
+
+            // Check the flag of the existing region
+            if ($existingRegion) {
+                // Redirect back with a warning message if flag is true
+                return redirect()->route('region_create')->with('warning', 'Unit already exists.');
+            }
+
+            // Update the region
+            $region->update([
+                'company_id' => $request->input('company'),
+                'division_id' => '0',
+                'division_id_BU' => '0',
+                'division_id_BU_23' => $request->division,
+                'unit_id' => '0',
+                'unit_id_new' => $request->unit,
+                'region_name' => $request->input('region'),
+                'region_code' => $request->input('region_code'),
+                'invoice_code_old' => '',
+                'invoice_code' => $request->input('invoice_code'),
+                'BU' => 0,
+                'div_bu_new' => '0',
+                'div_bu_new_23' => $request->division,
+                'BU_new' => '',
+                'division_fy_21_22' => 0,
+                'division_fy_23_24' => $request->division,
+            ]);
+
+            // Redirect back to the region create page with a success message
+            return redirect()->route('region_create')->with('info', "Region Updated Successfully");
+        } catch (\Exception $e) {
+            return redirect()->back()->with('error', 'Error: ' . $e->getMessage());
+        }
+    }
